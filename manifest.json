@@ -1,0 +1,42 @@
+{
+  "name": "Fbclid Blocker",
+  "version": "2.0.0",
+  "author": "Zdeněk Pavlátka",
+  "description": "Removes fbclid parameter from all links on facebook.",
+  "browser_action": {
+    "default_popup": "fbclid-blocker.html",
+    "default_icon": {
+      "16": "fbclid-blocker-16.png",
+      "32": "fbclid-blocker-32.png",
+      "64": "fbclid-blocker-64.png",
+      "128": "fbclid-blocker-128.png",
+      "256": "fbclid-blocker.png"
+    }
+  },
+  "icons": {
+    "16": "fbclid-blocker-16.png",
+    "32": "fbclid-blocker-32.png",
+    "64": "fbclid-blocker-64.png",
+    "128": "fbclid-blocker-128.png",
+    "256": "fbclid-blocker.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [ "https://www.facebook.com/*" ],
+      "js": [ "fbclid-blocker-fb.js" ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [ "http://*/*", "https://*/*" ],
+      "exclude_matches": [ "https://www.facebook.com/*" ],
+      "js": [ "fbclid-blocker-nonfb.js" ],
+      "run_at": "document_start"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "fbclid-blocker@zdepav.cz"
+    }
+  },
+  "manifest_version": 2
+}

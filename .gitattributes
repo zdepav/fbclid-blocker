@@ -1,0 +1,31 @@
+.editorconfig text eol=lf
+.gitattributes text eol=lf
+.gitignore text eol=lf
+*.bash text eol=lf
+*.css text eol=lf
+*.csv text eol=lf
+*.csx text eol=lf
+*.html text eol=lf
+*.jfif binary
+*.jpeg binary
+*.jpg binary
+*.js text eol=lf
+*.json text eol=lf
+*.less text eol=lf
+*.map binary
+*.md text eol=lf
+*.pdn binary
+*.png binary
+*.sass text eol=lf
+*.scss text eol=lf
+*.sh text eol=lf
+*.svg text eol=lf
+*.ts text eol=lf
+*.ttf binary
+*.txt text eol=lf
+*.webp binary
+*.xml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+README text eol=lf
+LICENSE text eol=lf

@@ -1,0 +1,1 @@
+Add-on source code is compiled with tsc --removeComments and then minified using the npm minify package (https://www.npmjs.com/package/minify).
