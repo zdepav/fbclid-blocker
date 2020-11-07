@@ -8,7 +8,7 @@ If the parameter is not removed (for any reason) before the link is clicked, thi
 
 As a side effect it simplifies the links to avoid unnecessary redirects, which can slightly speed-up their loading.
 
-This extension is also available for [Firefox](https://addons.mozilla.org/en-US/firefox/addon/fbclid-blocker) and its source code is released under GNU GPL 3.0 on [GitHub](https://github.com/zdepav/fbclid-blocker).
+This extension's source code is released under GNU GPL 3.0 on GitHub (https://github.com/zdepav/fbclid-blocker).
 
 permission:
 Read and change content of websites - used to remove/hide the fbclid parameter from links/urls as said in the description.
