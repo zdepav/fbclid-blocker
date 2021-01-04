@@ -11,27 +11,37 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-window.addEventListener("load", () => {
+window.addEventListener('load', () => {
+
+    const fullUriRegex =
+        /^(?:https?:\/\/)?lm?\.facebook\.com\/l\.php\?(?:(?:[^u=]+|u[^=]+)=[^&]+&)*u=([^&]+)(?:&|$)/
+    const fbclidRegex = /([?&])fbclid=[0-9a-zA-Z_-]{40,}(?:(#)|&|$)/
+    const getQueryInvalidStartRegex = /[?&]$/
+
     function cleanup(uri: string) {
         if (!uri) {
             return uri
         }
-        let match = uri.match(
-            /^(?:https?:\/\/)?lm?\.facebook\.com\/l\.php\?(?:(?:[^u=]+|u[^=]+)=[^&]+&)*u=([^&]+)(?:&|$)/
-        )
+        let match = uri.match(fullUriRegex)
         return (match ? decodeURIComponent(match[1]) : uri)
-            .replace(/([?&])fbclid=[0-9a-zA-Z_-]{40,}(?:&|$)/, "$1")
-            .replace(/[?&]$/, "")
+            .replace(fbclidRegex, '$1$2')
+            .replace(getQueryInvalidStartRegex, '')
     }
 
-    const anchorCopiedAttributes = ["class", "rel", "role", "tabindex", "target"]
+    const anchorCopiedAttributes = ['class', 'rel', 'role', 'tabindex', 'target']
 
     function fix(a: HTMLAnchorElement) {
-        let link = a.getAttribute("href")
-        if (!link || link.length === 0 || link[0] === '#' || link.indexOf("www.facebook") >= 0) {
+        let link = a.getAttribute('href')
+        if (!link ||
+            link.length === 0 ||
+            link[0] === '#' ||
+            link[0] === '/' ||
+            link.indexOf('www.facebook') >= 0 ||
+            link.indexOf('fbclid') < 0
+        ) {
             return
         }
-        const newA = document.createElement("a")
+        const newA = document.createElement('a')
         a.parentNode.insertBefore(newA, a.nextSibling)
         const elements: Array<Node> = []
         for (let i = 0; i < a.childNodes.length; ++i) {
@@ -43,18 +53,18 @@ window.addEventListener("load", () => {
         for (const attr of anchorCopiedAttributes) {
             newA.setAttribute(attr, a.getAttribute(attr))
         }
-        newA.setAttribute("href", cleanup(link))
-        if (a.hasAttribute("data-lynx-uri")) {
+        newA.setAttribute('href', cleanup(link))
+        if (a.hasAttribute('data-lynx-uri')) {
             newA.setAttribute(
-                "data-lynx-uri",
-                cleanup(a.getAttribute("data-lynx-uri"))
+                'data-lynx-uri',
+                cleanup(a.getAttribute('data-lynx-uri'))
             )
         }
         a.remove()
     }
 
     for (let i = 0; i < document.links.length; ++i) {
-        if (document.links[i].nodeName === "a") {
+        if (document.links[i].nodeName === 'a') {
             fix(<HTMLAnchorElement>document.links[i])
         }
     }
@@ -67,20 +77,27 @@ window.addEventListener("load", () => {
                         return
                     }
                     (<Element>node)
-                        .querySelectorAll("a")
+                        .querySelectorAll('a')
                         .forEach(a => fix(<HTMLAnchorElement>a))
                 })
             }
         } catch (e) {
-            console.error("FbclidBlocker error:")
+            console.error('FbclidBlocker error:')
             console.error(e)
             observer.disconnect()
         }
-    }).observe(document.querySelector("div[data-pagelet=root]"), {
+    }).observe(document.querySelector('div[data-pagelet=root]'), {
         subtree: true,
         childList: true,
         attributes: false,
         characterData: false
     })
-    console.log("FbclidBlocker initialized")
+    console.log('FbclidBlocker initialized')
+
+    function stop(e: Event) {
+        e.stopPropagation()
+    }
+    for (let etype of ['contextmenu', 'copy', 'cut']) {
+        document.documentElement.addEventListener(etype, stop, true)
+    }
 })

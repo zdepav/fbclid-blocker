@@ -1,6 +1,6 @@
 {
   "name": "Fbclid Blocker",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "author": "Zdeněk Pavlátka",
   "description": "Removes fbclid parameter from all links on facebook.",
   "browser_action": {

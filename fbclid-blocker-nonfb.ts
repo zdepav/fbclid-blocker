@@ -13,8 +13,8 @@
 
 (() => {
     let link = location.href
-        .replace(/([?&])fbclid=[0-9a-zA-Z_-]{40,}(?:&|$)/, "$1")
-        .replace(/[?&]$/, "");
+        .replace(/([?&])fbclid=[0-9a-zA-Z_-]{40,}(?:&|$)/, '$1')
+        .replace(/[?&]$/, '');
     if (link != location.href) {
         history.replaceState(null, '', link)
     }
