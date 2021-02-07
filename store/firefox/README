@@ -1,1 +1,5 @@
-Add-on source code is compiled with tsc --removeComments and then minified using the npm minify package (https://www.npmjs.com/package/minify).
+Add-on source code is compiled with tsc --removeComments and then minified using the npm minify
+package (https://www.npmjs.com/package/minify).
+
+Exact build script can be found in the extension's GitHub repository:
+https://github.com/zdepav/fbclid-blocker

@@ -1,0 +1,20 @@
+short: Removes fbclid parameter from all links on facebook.
+
+long: >-
+  Automatically removes annoying fbclid parameter from any url linked from facebook.
+
+
+  If the parameter can't be removed before the link is clicked, this extension will remove it from
+  the url when the linked page loads.
+
+
+  As a side effect it simplifies the links to avoid unnecessary redirects, which can slightly
+  speed-up their loading.
+
+
+  This extension's source code is released under GNU GPL 3.0 on GitHub
+  (https://github.com/zdepav/fbclid-blocker).
+
+permission: >-
+  Read and change content of websites - used to remove/hide the fbclid parameter from links/urls as
+  said in the description.

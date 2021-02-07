@@ -28,71 +28,106 @@ window.addEventListener('load', () => {
             .replace(getQueryInvalidStartRegex, '')
     }
 
-    const anchorCopiedAttributes = ['class', 'rel', 'role', 'tabindex', 'target']
+    const anchorCopiedAttributes = ['rel', 'role', 'tabindex', 'target']
+
+    function checkLink(link: string): boolean {
+        return link &&
+               link.length > 0 &&
+               link[0] !== '#' &&
+               link[0] !== '/' &&
+               link.indexOf('www.facebook') < 0 &&
+               link.indexOf('fbclid') >= 0
+    }
+
+    function quickFix(a: HTMLAnchorElement) {
+        let link = a.getAttribute('href')
+        if (checkLink(link)) {
+            a.setAttribute('href', cleanup(link))
+            if (a.hasAttribute('data-lynx-uri')) {
+                a.setAttribute(
+                    'data-lynx-uri',
+                    cleanup(a.getAttribute('data-lynx-uri'))
+                )
+            }
+        }
+    }
 
     function fix(a: HTMLAnchorElement) {
         let link = a.getAttribute('href')
-        if (!link ||
-            link.length === 0 ||
-            link[0] === '#' ||
-            link[0] === '/' ||
-            link.indexOf('www.facebook') >= 0 ||
-            link.indexOf('fbclid') < 0
-        ) {
-            return
+        if (checkLink(link)) {
+            const newA = document.createElement('a')
+            a.parentNode.insertBefore(newA, a.nextSibling)
+            const elements: Array<Node> = []
+            for (let i = 0; i < a.childNodes.length; ++i) {
+                elements.push(a.childNodes[i])
+            }
+            for (let i = 0; i < elements.length; ++i) {
+                newA.appendChild(elements[i])
+            }
+            for (const attr of anchorCopiedAttributes) {
+                newA.setAttribute(attr, a.getAttribute(attr))
+            }
+            newA.setAttribute('href', cleanup(link))
+            if (a.hasAttribute('data-lynx-uri')) {
+                newA.setAttribute(
+                    'data-lynx-uri',
+                    cleanup(a.getAttribute('data-lynx-uri'))
+                )
+            }
+            newA.setAttribute('class', a.getAttribute('class') + ' fbfix')
+            newA.addEventListener('mouseup', () => quickFix(newA))
+            a.remove()
         }
-        const newA = document.createElement('a')
-        a.parentNode.insertBefore(newA, a.nextSibling)
-        const elements: Array<Node> = []
-        for (let i = 0; i < a.childNodes.length; ++i) {
-            elements.push(a.childNodes[i])
-        }
-        for (let i = 0; i < elements.length; ++i) {
-            newA.appendChild(elements[i])
-        }
-        for (const attr of anchorCopiedAttributes) {
-            newA.setAttribute(attr, a.getAttribute(attr))
-        }
-        newA.setAttribute('href', cleanup(link))
-        if (a.hasAttribute('data-lynx-uri')) {
-            newA.setAttribute(
-                'data-lynx-uri',
-                cleanup(a.getAttribute('data-lynx-uri'))
-            )
-        }
-        a.remove()
     }
 
     for (let i = 0; i < document.links.length; ++i) {
         if (document.links[i].nodeName === 'a') {
-            fix(<HTMLAnchorElement>document.links[i])
+            let a = <HTMLAnchorElement>document.links[i]
+            quickFix(a)
+            a.setAttribute('class', a.getAttribute('class') + ' fbfix')
+            a.addEventListener('mouseup', () => quickFix(a))
         }
     }
 
-    new MutationObserver((mutations, observer) => {
+    let observerOptions = {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        attributeFilter: ['href'],
+        characterData: false
+    }
+    let observerTarget = document.querySelector('div[data-pagelet=root]')
+    let observer = new MutationObserver((mutations, observer) => {
+        observer.disconnect()
         try {
             for (const mutation of mutations) {
-                mutation.addedNodes.forEach(node => {
-                    if (node.nodeType !== Node.ELEMENT_NODE) {
-                        return
-                    }
-                    (<Element>node)
-                        .querySelectorAll('a')
-                        .forEach(a => fix(<HTMLAnchorElement>a))
-                })
+                switch (mutation.type) {
+                    case 'attributes':
+                        if (mutation.target.nodeType === Node.ELEMENT_NODE &&
+                            mutation.target.nodeName === 'a'
+                        ) {
+                            quickFix(<HTMLAnchorElement>mutation.target)
+                        }
+                        break;
+                    case 'childList':
+                        mutation.addedNodes.forEach(node => {
+                            if (node.nodeType !== Node.ELEMENT_NODE) {
+                                return
+                            }
+                            (<Element>node)
+                                .querySelectorAll('a')
+                                .forEach(a => fix(<HTMLAnchorElement>a))
+                        })
+                        break;
+                }
             }
+            observer.observe(observerTarget, observerOptions)
         } catch (e) {
             console.error('FbclidBlocker error:')
             console.error(e)
-            observer.disconnect()
         }
-    }).observe(document.querySelector('div[data-pagelet=root]'), {
-        subtree: true,
-        childList: true,
-        attributes: false,
-        characterData: false
     })
-    console.log('FbclidBlocker initialized')
+    observer.observe(observerTarget, observerOptions)
 
     function stop(e: Event) {
         e.stopPropagation()
@@ -100,4 +135,5 @@ window.addEventListener('load', () => {
     for (let etype of ['contextmenu', 'copy', 'cut']) {
         document.documentElement.addEventListener(etype, stop, true)
     }
+    console.log('FbclidBlocker initialized')
 })
