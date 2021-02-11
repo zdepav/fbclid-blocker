@@ -68,17 +68,20 @@ check_npm_packages_available() {
   fi
 }
 
-compile_ts() {
-  if tsc --removeComments --outFile "build/$1.js" "$1.ts"
+debug_compile_ts() {
+  if sed -E 's@/\*\s*debug\s+begin\s*\*/@@gi;s@/\*\s*debug\s+end\s*\*/@@gi;s@/\*\s*release\s+begin\s*\*/@/*@gi;s@/\*\s*release\s+end\s*\*/@*/@gi' < "$1.ts" > "build/$1.ts" \
+  && tsc --removeComments --outFile "build/$1.js" "$1.ts" \
+  && rm -f "build/$1.ts"
   then return 0
   else return 1
   fi
 }
 
 compile_minify_ts() {
-  if tsc --removeComments --outFile "build/$1.tmp.js" "$1.ts" \
+  if sed -E 's@/\*\s*debug\s+begin\s*\*/@/*@gi;s@/\*\s*debug\s+end\s*\*/@*/@gi;s@/\*\s*release\s+begin\s*\*/@@gi;s@/\*\s*release\s+end\s*\*/@@gi' < "$1.ts" > "build/$1.ts" \
+  && tsc --removeComments --outFile "build/$1.tmp.js" "build/$1.ts" \
   && minify "build/$1.tmp.js" > "build/$1.js" \
-  && rm -f "build/$1.tmp.js"
+  && rm -f "build/$1.ts" "build/$1.tmp.js"
   then return 0
   else return 1
   fi
@@ -113,8 +116,8 @@ rm -rf build/*
 echo "compiling typecript"
 if [ $debug ]
 then
-  compile_ts fbclid-blocker-fb || exit 1
-  compile_ts fbclid-blocker-nonfb || exit 1
+  debug_compile_ts fbclid-blocker-fb || exit 1
+  debug_compile_ts fbclid-blocker-nonfb || exit 1
 else
   compile_minify_ts fbclid-blocker-fb || exit 1
   compile_minify_ts fbclid-blocker-nonfb || exit 1

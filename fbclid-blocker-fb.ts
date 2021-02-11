@@ -18,14 +18,23 @@ window.addEventListener('load', () => {
     const fbclidRegex = /([?&])fbclid=[0-9a-zA-Z_-]{40,}(?:(#)|&|$)/
     const getQueryInvalidStartRegex = /[?&]$/
 
-    function cleanup(uri: string) {
+    function cleanup(uri: string): string {
         if (!uri) {
             return uri
         }
         let match = uri.match(fullUriRegex)
+        /* debug begin */
+        let r = (match ? decodeURIComponent(match[1]) : uri)
+            .replace(fbclidRegex, '$1$2')
+            .replace(getQueryInvalidStartRegex, '')
+        console.info(uri + " -> " + r)
+        return r
+        /* debug end */
+        /* release begin */
         return (match ? decodeURIComponent(match[1]) : uri)
             .replace(fbclidRegex, '$1$2')
             .replace(getQueryInvalidStartRegex, '')
+        /* release end */
     }
 
     const anchorCopiedAttributes = ['rel', 'role', 'tabindex', 'target']
@@ -39,7 +48,7 @@ window.addEventListener('load', () => {
                link.indexOf('fbclid') >= 0
     }
 
-    function quickFix(a: HTMLAnchorElement) {
+    function quickFix(a: HTMLAnchorElement): void {
         let link = a.getAttribute('href')
         if (checkLink(link)) {
             a.setAttribute('href', cleanup(link))
@@ -50,9 +59,18 @@ window.addEventListener('load', () => {
                 )
             }
         }
+        /* debug begin */
+        else {
+            console.warn("link rejected: " + link)
+        }
+        /* debug end */
     }
 
-    function fix(a: HTMLAnchorElement) {
+    function fix(a: HTMLAnchorElement): void {
+        if (a.getAttribute('class').indexOf('fbfix') >= 0) {
+            quickFix(a)
+            return
+        }
         let link = a.getAttribute('href')
         if (checkLink(link)) {
             const newA = document.createElement('a')
@@ -78,15 +96,22 @@ window.addEventListener('load', () => {
             newA.addEventListener('mouseup', () => quickFix(newA))
             a.remove()
         }
+        /* debug begin */
+        else {
+            console.warn("link rejected: " + link)
+        }
+        /* debug end */
     }
 
     for (let i = 0; i < document.links.length; ++i) {
-        if (document.links[i].nodeName === 'a') {
-            let a = <HTMLAnchorElement>document.links[i]
-            quickFix(a)
-            a.setAttribute('class', a.getAttribute('class') + ' fbfix')
-            a.addEventListener('mouseup', () => quickFix(a))
+        if (document.links[i].nodeName.toLowerCase() === 'a') {
+            fix(<HTMLAnchorElement>document.links[i])
         }
+        /* debug begin */
+        else {
+            console.warn("element rejected: " + document.links[i].nodeName)
+        }
+        /* debug end */
     }
 
     let observerOptions = {
