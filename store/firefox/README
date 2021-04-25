@@ -2,5 +2,6 @@ All code between "/* debug begin */" and "/* debug end */" is removed, after tha
 with tsc --removeComments and then minified using the npm minify package:
 https://www.npmjs.com/package/minify
 
-Exact build script can be found in the extension's GitHub repository:
+Exact build script can be found in the extension's GitHub repository (file build.sh):
 https://github.com/zdepav/fbclid-blocker
+Note: the build script requires 7z on PATH.

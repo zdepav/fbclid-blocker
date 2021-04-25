@@ -27,7 +27,7 @@ window.addEventListener('load', () => {
         let r = (match ? decodeURIComponent(match[1]) : uri)
             .replace(fbclidRegex, '$1$2')
             .replace(getQueryInvalidStartRegex, '')
-        console.info(uri + " -> " + r)
+        console.info("link fixed: " + uri + " -> " + r)
         return r
         /* debug end */
         /* release begin */
@@ -121,7 +121,7 @@ window.addEventListener('load', () => {
         attributeFilter: ['href'],
         characterData: false
     }
-    let observerTarget = document.querySelector('div[data-pagelet=root]')
+    let observerTarget = document.querySelector('body')
     let observer = new MutationObserver((mutations, observer) => {
         observer.disconnect()
         try {

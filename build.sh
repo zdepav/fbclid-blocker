@@ -97,19 +97,41 @@ if [ -d build ]
 then rm -rf build/*
 fi
 mkdir -p build/src/ || exit 1
+mkdir -p dist/debug/ || exit 1
 
 version=$(grep -F '"version": "' manifest.json | grep -oE '[0-9]+(\.[0-9]+)+')
 archive_base_name="fbclid-blocker-$(echo "$version" | sed -E 's/\./-/g')"
 echo "building version $version:"
 
 echo "copying source files"
-cp *.ts store/firefox/README build/src/ || exit 1
+cp *.ts build/src/ || exit 1
+{
+  cat store/firefox/README || exit 1
+  echo
+  echo "Version $version was built with:"
+  os_version="$(
+    systeminfo \
+      | grep -E '^OS (Name|Version)' \
+      | tr '\r\n' '  ' \
+      | sed -E 's/^ *OS Name: +([^ ].+[^ ]) +OS Version: +([^ ].+[^ ]) *$/\1, \2/'
+  )"
+  echo "system:    $os_version"
+  echo "bash:      $(bash --version | grep -F 'bash, version')"
+  echo "node.js:   $(node.exe --version)"
+  echo "npm:       v$(npm --version)"
+  echo "typecript: $(tsc --version | sed -E 's/Version /v/')"
+  echo "minify:    $(minify --version)"
+
+} >> build/src/README
 
 echo "packing source zip archive"
 cd build/src/
 7z a "$archive_base_name-source.zip" -- *.ts README > /dev/null 2>&1 || exit 1
 cd ../../
-mv "build/src/$archive_base_name-source.zip" dist/ || exit 1
+
+if ! [ $debug ]
+then mv "build/src/$archive_base_name-source.zip" dist/ || exit 1
+fi
 
 rm -rf build/*
 
@@ -127,10 +149,23 @@ echo "copying add-on files"
 minify fbclid-blocker.html > build/fbclid-blocker.html || exit 1
 cp icon/*.png manifest.json build/ || exit 1
 
-echo "packing zip archive"
-cd build/
-7z a "$archive_base_name.zip" -- *.png *.js *.html *.json > /dev/null 2>&1 || exit 1
-cd ../
-mv "build/$archive_base_name.zip" dist/ || exit 1
+if [ $debug ]
+then
+  if [ -d "dist/debug/$archive_base_name/" ]
+  then
+    rm -rf dist/debug/$archive_base_name/* || exit 1
+  else
+    mkdir  "dist/debug/$archive_base_name/" || exit 1
+  fi
+  cd build/
+  mv *.png *.js *.html *.json "../dist/debug/$archive_base_name/"
+  cd ../
+else
+  echo "packing zip archive"
+  cd build/
+  7z a "$archive_base_name.zip" -- *.png *.js *.html *.json > /dev/null 2>&1 || exit 1
+  cd ../
+  mv "build/$archive_base_name.zip" dist/ || exit 1
+fi
 
 echo "done"
